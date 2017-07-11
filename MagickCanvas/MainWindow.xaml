@@ -1,0 +1,88 @@
+﻿<Window x:Class="MagickCanvas.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MagickCanvas"
+        mc:Ignorable="d"
+        Icon="ImageMagick.ico" Title="Magick Canvas" WindowState="Maximized"
+        Loaded="Window_Loaded" Closed="Window_Closed" Closing="Window_Closing">
+    <Window.CommandBindings>
+        <CommandBinding Command="local:Commands.New" Executed="New" />
+        <CommandBinding Command="local:Commands.Open" Executed="Open" />
+        <CommandBinding Command="local:Commands.Save" Executed="Save" />
+        <CommandBinding Command="local:Commands.SaveAs" Executed="SaveAs" />
+        <CommandBinding Command="local:Commands.RunScript" Executed="RunScript" />
+        <CommandBinding Command="local:Commands.ClearConsole" Executed="ClearConsole" />
+        <CommandBinding Command="local:Commands.Exit" Executed="Exit" />
+    </Window.CommandBindings>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New" Command="local:Commands.New" />
+                <MenuItem Header="_Open" Command="local:Commands.Open"  />
+                <MenuItem Header="_Save" Command="local:Commands.Save"  />
+                <MenuItem Header="_Save as" Command="local:Commands.SaveAs"  />
+                <Separator />
+                <MenuItem Header="_Exit" Command="local:Commands.Exit" />
+            </MenuItem>
+            <MenuItem Header="_Actions">
+                <MenuItem Header="_Run Script" Command="local:Commands.RunScript" />
+                <MenuItem Header="_Clear Console" Command="local:Commands.ClearConsole" />
+                <MenuItem Header="_Show Script" x:Name="ShowScript" IsCheckable="True" />
+            </MenuItem>
+        </Menu>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="4" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="4" />
+                <RowDefinition Height="120" />
+                <RowDefinition Height="10" />
+            </Grid.RowDefinitions>
+
+            <RichTextBox x:Name="Editor" Grid.Row="0" Grid.Column="0" FontFamily="Consolas" FontSize="14pt"
+                         VerticalScrollBarVisibility="Auto" TextChanged="Editor_TextChanged">
+                <RichTextBox.Resources>
+                    <Style TargetType="{x:Type Paragraph}">
+                        <Setter Property="Margin" Value="0"/>
+                    </Style>
+                </RichTextBox.Resources>
+            </RichTextBox>
+
+            <GridSplitter Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" />
+
+            <Border Grid.Row="0" Grid.Column="2" SnapsToDevicePixels="True" Background="#EEE"
+                    BorderBrush="{x:Static SystemColors.ActiveBorderBrush}" BorderThickness="1">
+                <ScrollViewer x:Name="OutputScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled"
+                              PreviewMouseLeftButtonDown="OutputScroll_PreviewMouseLeftButtonDown"
+                              PreviewMouseMove="OutputScroll_PreviewMouseMove"
+                              PreviewMouseLeftButtonUp="OutputScroll_PreviewMouseLeftButtonUp">
+                    <Image x:Name="Output" Source="{Binding ImageSource}"
+                           StretchDirection="DownOnly"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center" />
+                </ScrollViewer>
+            </Border>
+
+
+            <GridSplitter Grid.Row="1" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" />
+
+            <RichTextBox x:Name="Console" Grid.Row="2" Grid.ColumnSpan="3" FontFamily="Consolas" FontSize="14pt"
+                         IsReadOnly="True" VerticalScrollBarVisibility="Auto">
+                <RichTextBox.Resources>
+                    <Style TargetType="{x:Type Paragraph}">
+                        <Setter Property="Margin" Value="0"/>
+                    </Style>
+                </RichTextBox.Resources>
+            </RichTextBox>
+
+            <ProgressBar Grid.Row="3" Grid.ColumnSpan="3" x:Name="Executing"></ProgressBar>
+
+        </Grid>
+    </DockPanel>
+</Window>
