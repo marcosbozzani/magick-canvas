@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,7 +26,6 @@ namespace MagickCanvas
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly string magick;
         private readonly string fileFilter;
         private readonly string imagePath;
         private readonly string scriptPath;
@@ -96,10 +95,26 @@ namespace MagickCanvas
             }
         }
 
+        private string magickApp
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(Settings.Default.MagickApp))
+                {
+                    return "magick.exe";
+                }
+                return Settings.Default.MagickApp;
+            }
+            set
+            {
+                Settings.Default.MagickApp = value;
+                Settings.Default.Save();
+            }
+        }
+
         public MainWindow()
         {
             tempFilePrefix = "MagickCanvas.";
-            magick = AppDomain.CurrentDomain.BaseDirectory + @"imagemagick\magick.exe";
             fileFilter = "Magick Canvas file (*.mkc)|*.mkc";
             imagePath = GetTempFilePath(".png");
             scriptPath = GetTempFilePath(".cmd");
@@ -123,6 +138,8 @@ namespace MagickCanvas
             if (IO.File.Exists(workingFile))
             {
                 SetEditorText(IO.File.ReadAllText(workingFile));
+                workingFile = workingFile;
+                workingDirectory = IO.Path.GetDirectoryName(workingFile);
             }
             else
             {
@@ -133,6 +150,8 @@ namespace MagickCanvas
             unsavedChanges = false;
 
             Editor.Focus();
+
+            CheckMagickApp();
             
             Dispatcher.BeginInvoke(new Action(() => { CleanupTempFiles(); }));
         }
@@ -244,6 +263,50 @@ namespace MagickCanvas
             }
         }
 
+        private void CheckMagickApp()
+        {
+            while (true)
+            {
+                try
+                {
+                    var process = new Process();
+                    process.StartInfo.FileName = magickApp;
+                    process.StartInfo.CreateNoWindow = true;
+                    process.StartInfo.UseShellExecute = false;
+
+                    process.Start();
+                    process.Close();
+
+                    return;
+                }
+                catch (Win32Exception)
+                {
+                    var message = "Select the executable path or cancel to exit.";
+                    var result = MessageBox.Show(message, "Magick.exe not found", MessageBoxButton.OKCancel);
+
+                    if (result == MessageBoxResult.Cancel)
+                    {
+                        Application.Current.Shutdown();
+                        return;
+                    }
+
+                    ShowMagickAppDialog();
+                }
+            }
+        }
+
+        private void ShowMagickAppDialog()
+        {
+            var openFileDialog = new OpenFileDialog();
+
+            openFileDialog.Filter = "Image Magick|magick.exe";
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                magickApp = openFileDialog.FileName;
+            }
+        }
+
         private void RunScript(object sender, ExecutedRoutedEventArgs e)
         {
             lock (runScriptLock)
@@ -309,7 +372,7 @@ namespace MagickCanvas
                 }
             }
 
-            var script = magick + " " + builder + imagePath;
+            var script = magickApp + " " + builder + imagePath;
             
             return "@echo off\r\nchcp 65001>nul\r\n" + script;
         }
